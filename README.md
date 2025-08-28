@@ -34,3 +34,57 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# Fashion Influencer Image Generation
+
+This is a Next.js project bootstrapped with create-next-app.
+
+## Getting Started
+
+First, run the development servers:
+
+Frontend (Next.js):
+
+```
+npm run dev
+```
+
+Backend (FastAPI):
+
+```
+cd backend
+uvicorn main:app --reload
+```
+
+Open http://localhost:3000 with your browser to see the result.
+
+## Environment & Secrets
+
+- Backend requires GEMINI_API_KEY to be set. Do NOT commit real keys.
+- Example files are provided:
+  - backend/.env.example
+  - .env.local.example
+- Create actual env files and populate values:
+  - backend/.env
+  - .env.local
+
+## Deploy on Vercel
+
+The frontend (Next.js) is ready to deploy on Vercel. The Python FastAPI backend is not hosted by Vercel; deploy it separately (e.g., Render, Fly.io, Railway, Google Cloud Run, Heroku) and point the frontend to it via NEXT_PUBLIC_BACKEND_URL.
+
+Steps:
+1. Deploy backend to your preferred host. Set environment variables there:
+   - GEMINI_API_KEY
+   - BACKEND_ALLOWED_ORIGINS to include your Vercel domain, e.g., https://your-app.vercel.app
+2. In your Vercel Project Settings → Environment Variables, set:
+   - NEXT_PUBLIC_BACKEND_URL = https://your-backend-host.example.com
+3. Push your frontend to Vercel. The app will call `${NEXT_PUBLIC_BACKEND_URL}/api/generate-images`.
+
+## Production CORS
+
+The backend reads allowed origins from BACKEND_ALLOWED_ORIGINS (comma-separated). Ensure your production frontend domain is included.
+
+## Learn More
+
+- Next.js Documentation: https://nextjs.org/docs
+- Vercel Deployment: https://nextjs.org/docs/app/building-your-application/deploying
