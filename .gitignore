@@ -1,41 +1,99 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ===================================
+# Next.js / Node.js Project
+# ===================================
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Dependencies
+node_modules/
+jspm_packages/
+.pnp
+.pnp.js
 
-# testing
-/coverage
+# Build outputs
+.next/
+out/
+dist/
+build/
 
-# next.js
-/.next/
-/out/
+# Environment files
+.env*
+.env.local
+!.env*.example
 
-# production
-/build
+# Cache and temporary files
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+.npm
+.yarn-integrity
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Testing
+coverage/
+.nyc_output
 
-# vercel
+# Vercel
 .vercel
+.vercelignore
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# ===================================
+# Python (Legacy/Reference)
+# ===================================
+
+# Virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ===================================
+# IDE and Editor Files
+# ===================================
+
+# JetBrains IDEs
+.idea/
+/shelf/
+/workspace.xml
+/httpRequests/
+/dataSources/
+/dataSources.local.xml
+
+# Visual Studio Code
+.vscode/
+
+# ===================================
+# Operating System
+# ===================================
+
+# macOS
+.DS_Store
+*.pem
+
+# ===================================
+# Project Specific
+# ===================================
+
+# Claude Code configuration (keep local)
+.claude/
+
+# Reference templates (keep in repo for design reference)
+.reference/
+
+# MCP configuration (keep local)
+.mcp.json
+
+# Project documentation (keep in repo)
+CLAUDE.md
+.gitignore
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
