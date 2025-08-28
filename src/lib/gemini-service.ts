@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import sharp from 'sharp';
 import { createHash } from 'crypto';
 
@@ -10,7 +10,7 @@ interface GenerateImagesResult {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  private model: any;
+  private model: GenerativeModel;
   private promptTemplate: string;
 
   constructor() {
@@ -95,7 +95,7 @@ export class GeminiService {
         attempts++;
         try {
           // Build content with all products
-          const content = [this.promptTemplate];
+          const content: Array<string | { inlineData: { data: string; mimeType: string } }> = [this.promptTemplate];
           
           // Add user image
           content.push({
