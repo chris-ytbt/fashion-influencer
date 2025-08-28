@@ -70,19 +70,22 @@ Open http://localhost:3000 with your browser to see the result.
 
 ## Deploy on Vercel
 
-The frontend (Next.js) is ready to deploy on Vercel. The Python FastAPI backend is not hosted by Vercel; deploy it separately (e.g., Render, Fly.io, Railway, Google Cloud Run, Heroku) and point the frontend to it via NEXT_PUBLIC_BACKEND_URL.
+The application is ready to deploy entirely on Vercel as a single Next.js application.
 
 Steps:
-1. Deploy backend to your preferred host. Set environment variables there:
-   - GEMINI_API_KEY
-   - BACKEND_ALLOWED_ORIGINS to include your Vercel domain, e.g., https://your-app.vercel.app
+1. Connect your GitHub repository to Vercel
 2. In your Vercel Project Settings → Environment Variables, set:
-   - NEXT_PUBLIC_BACKEND_URL = https://your-backend-host.example.com
-3. Push your frontend to Vercel. The app will call `${NEXT_PUBLIC_BACKEND_URL}/api/generate-images`.
+   - `GEMINI_API_KEY` = your Google Gemini API key
+3. Deploy - Vercel will automatically build and deploy your Next.js app
+4. The deployed app will handle both frontend and API routes on the same domain
 
-## Production CORS
+## Benefits of Single Deployment
 
-The backend reads allowed origins from BACKEND_ALLOWED_ORIGINS (comma-separated). Ensure your production frontend domain is included.
+- **Simplified Architecture**: No separate backend deployment needed
+- **No CORS Issues**: Frontend and API on the same domain
+- **Easier Environment Management**: Single set of environment variables
+- **Better Performance**: Reduced network latency between frontend and API
+- **Cost Effective**: Single deployment reduces hosting costs
 
 ## Learn More
 

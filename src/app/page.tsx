@@ -37,8 +37,8 @@ export default function Home() {
       formData.append('product_urls', validUrls.join(','));
       formData.append('image_count', imageCount.toString());
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/api/generate-images`, {
+      // Call our Next.js API proxy route (server-to-server forwards to Python backend)
+      const response = await fetch(`/api/generate-images`, {
         method: 'POST',
         body: formData,
       });
