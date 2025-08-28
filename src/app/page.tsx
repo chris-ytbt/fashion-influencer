@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
+import ImageUpload from '@/components/ImageUpload';
+import ProductUrls from '@/components/ProductUrls';
+import ImageCountSelector from '@/components/ImageCountSelector';
+import GenerateButton from '@/components/GenerateButton';
+import ResultsDisplay from '@/components/ResultsDisplay';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [userImage, setUserImage] = useState<File | null>(null);
+  const [productUrls, setProductUrls] = useState<string[]>(['']);
+  const [imageCount, setImageCount] = useState<number>(1);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleGenerate = async () => {
+    if (!userImage) {
+      setError('Please upload a user image');
+      return;
+    }
+
+    const validUrls = productUrls.filter(url => url.trim() !== '');
+    if (validUrls.length === 0) {
+      setError('Please add at least one product URL');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    setGeneratedImages([]);
+
+    try {
+      const formData = new FormData();
+      formData.append('user_image', userImage);
+      formData.append('product_urls', validUrls.join(','));
+      formData.append('image_count', imageCount.toString());
+
+      const response = await fetch('http://localhost:8000/api/generate-images', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setGeneratedImages(result.images);
+      } else {
+        setError(result.error || 'Failed to generate images');
+      }
+    } catch {
+      setError('Network error: Please make sure the backend server is running');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="container mx-auto px-4 py-8">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4 text-foreground">
+            Generate Influencer Images
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Transform your photos into professional fashion influencer images using AI
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <div className="space-y-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Drop your picture</h2>
+              <ImageUpload
+                onImageSelect={setUserImage}
+                selectedImage={userImage}
+              />
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Product urls</h2>
+              <ProductUrls
+                urls={productUrls}
+                onUrlsChange={setProductUrls}
+              />
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Image count</h2>
+              <ImageCountSelector
+                count={imageCount}
+                onCountChange={setImageCount}
+              />
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <GenerateButton
+                onClick={handleGenerate}
+                isGenerating={isGenerating}
+                disabled={!userImage || productUrls.every(url => url.trim() === '')}
+              />
+              {error && (
+                <div className="mt-4 p-3 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 rounded">
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Results Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Results</h2>
+            <ResultsDisplay
+              images={generatedImages}
+              isLoading={isGenerating}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
