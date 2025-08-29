@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ResultsDisplayProps {
   images: string[];
@@ -8,16 +8,38 @@ interface ResultsDisplayProps {
 }
 
 export default function ResultsDisplay({ images, isLoading }: ResultsDisplayProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [zoomMode, setZoomMode] = useState<'fit-to-window' | 'original-scale'>('fit-to-window');
   const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
 
-  const handleImageClick = (image: string) => {
-    setSelectedImage(image);
+  const handleImageClick = (index: number) => {
+    setSelectedIndex(index);
+    setZoomMode('fit-to-window');
   };
 
   const handleCloseModal = () => {
-    setSelectedImage(null);
+    setSelectedIndex(null);
   };
+
+  // Keyboard navigation on desktop devices only
+  useEffect(() => {
+    if (selectedIndex === null) return;
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (!isDesktop || images.length <= 1) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setSelectedIndex((prev) => (prev !== null ? Math.max(0, prev - 1) : prev));
+      } else if (e.key === 'ArrowRight') {
+        setSelectedIndex((prev) => (prev !== null ? Math.min(images.length - 1, prev + 1) : prev));
+      } else if (e.key === 'Escape') {
+        handleCloseModal();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedIndex, images.length]);
 
   const handleDownload = async (image: string, index: number) => {
     setDownloadingIndex(index);
@@ -132,12 +154,12 @@ export default function ResultsDisplay({ images, isLoading }: ResultsDisplayProp
                 src={image}
                 alt={`Generated fashion influencer image ${index + 1}`}
                 className="w-full aspect-square object-cover rounded-lg cursor-pointer transition-transform group-hover:scale-105"
-                onClick={() => handleImageClick(image)}
+                onClick={() => handleImageClick(index)}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all duration-200 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity space-x-2">
                   <button
-                    onClick={() => handleImageClick(image)}
+                    onClick={() => handleImageClick(index)}
                     className="px-3 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     View
@@ -156,29 +178,77 @@ export default function ResultsDisplay({ images, isLoading }: ResultsDisplayProp
         </div>
       </div>
 
-      {/* Modal for full-size image view */}
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl max-h-full">
+      {/* Modal for full-size image view with zoom and navigation */}
+      {selectedIndex !== null && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="relative w-full h-full max-h-[100vh] max-w-[100vw] flex items-center justify-center">
+            {/* Close button */}
             <button
               onClick={handleCloseModal}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+              className="absolute top-4 right-4 text-white hover:text-gray-300 z-20"
+              aria-label="Close"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <img
-              src={selectedImage}
-              alt="Full size generated image"
-              className="max-w-full max-h-full rounded-lg"
-              onClick={handleCloseModal}
-            />
+
+            {/* Zoom toggle button */}
+            <button
+              onClick={() => setZoomMode(zoomMode === 'fit-to-window' ? 'original-scale' : 'fit-to-window')}
+              className="absolute top-4 right-16 text-white hover:text-gray-300 z-20"
+              aria-label={zoomMode === 'fit-to-window' ? 'Zoom in' : 'Zoom out'}
+              title={zoomMode === 'fit-to-window' ? 'Zoom in' : 'Zoom out'}
+            >
+              {zoomMode === 'fit-to-window' ? (
+                // zoom-in icon
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11h4m-2-2v4M21 21l-4.35-4.35m1.6-3.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              ) : (
+                // zoom-out icon
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 11H7m14 10l-4.35-4.35m1.6-3.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Left/Right navigation buttons */}
+            <button
+              onClick={() => setSelectedIndex((prev) => (prev !== null ? Math.max(0, prev - 1) : prev))}
+              disabled={images.length <= 1 || selectedIndex === 0}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full p-3 text-white bg-black/40 hover:bg-black/60 disabled:opacity-40 disabled:cursor-not-allowed`}
+              aria-label="Previous image"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setSelectedIndex((prev) => (prev !== null ? Math.min(images.length - 1, prev + 1) : prev))}
+              disabled={images.length <= 1 || selectedIndex === images.length - 1}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full p-3 text-white bg-black/40 hover:bg-black/60 disabled:opacity-40 disabled:cursor-not-allowed`}
+              aria-label="Next image"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Image container */}
+            <div className={`relative w-full h-full ${zoomMode === 'original-scale' ? 'overflow-auto' : ''} flex items-center justify-center`}>
+              {selectedIndex !== null && (
+                <img
+                  src={images[selectedIndex]}
+                  alt={`Generated image ${selectedIndex + 1}`}
+                  className={
+                    zoomMode === 'fit-to-window'
+                      ? 'max-w-[calc(100vw-4rem)] max-h-[calc(100vh-4rem)] object-contain rounded-lg'
+                      : 'rounded-lg'
+                  }
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
