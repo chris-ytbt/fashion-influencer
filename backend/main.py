@@ -42,7 +42,7 @@ async def health_check():
 @app.post("/api/generate-images")
 async def generate_images(
     user_image: UploadFile = File(...),
-    product_urls: str = Form(...),
+    product_urls: Optional[str] = Form(None),
     image_count: int = Form(default=1)
 ):
     """
@@ -64,10 +64,8 @@ async def generate_images(
         if image_count < 1 or image_count > 4:
             raise HTTPException(status_code=400, detail="Image count must be between 1 and 4")
         
-        # Parse product URLs
-        urls = [url.strip() for url in product_urls.split(',') if url.strip()]
-        if not urls:
-            raise HTTPException(status_code=400, detail="At least one product URL is required")
+        # Parse product URLs (optional)
+        urls = [url.strip() for url in (product_urls or '').split(',') if url.strip()]
         
         # Read user image
         user_image_data = await user_image.read()

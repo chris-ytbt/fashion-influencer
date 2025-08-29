@@ -33,28 +33,25 @@ export class GeminiService {
   async generateInfluencerImages(
     userImageData: Buffer,
     productUrls: string[],
-    imageCount: number = 1
+    imageCount: number = 1,
+    prompt?: string
   ): Promise<GenerateImagesResult> {
     try {
-      // Download and process product images
+      // Download and process product images (optional)
       const productImages: Buffer[] = [];
-      for (const url of productUrls) {
-        try {
-          const productImageData = await this.downloadImage(url);
-          productImages.push(productImageData);
-        } catch (e) {
-          console.log(`Failed to download product image from ${url}: ${e}`);
-          continue;
+      if (productUrls.length > 0) {
+        for (const url of productUrls) {
+          try {
+            const productImageData = await this.downloadImage(url);
+            productImages.push(productImageData);
+          } catch (e) {
+            console.log(`Failed to download product image from ${url}: ${e}`);
+            continue;
+          }
         }
       }
 
-      if (productImages.length === 0) {
-        return {
-          success: false,
-          error: 'Failed to download any product images',
-          images: []
-        };
-      }
+      // Note: If none could be downloaded, we will proceed prompt-only.
 
       // Process user image to JPEG
       const userImageJpeg = await this.processImage(userImageData);
@@ -79,14 +76,7 @@ export class GeminiService {
         }
       }
 
-      if (processedProducts.length === 0) {
-        return {
-          success: false,
-          error: 'No valid product images after processing',
-          images: []
-        };
-      }
-
+      // It's okay if we have zero processed products (prompt-only flow)
       const productHashes = new Set(processedProducts.map(p => p.hash));
 
       // Generate images with retry logic
@@ -95,7 +85,8 @@ export class GeminiService {
         attempts++;
         try {
           // Build content with all products
-          const content: Array<string | { inlineData: { data: string; mimeType: string } }> = [this.promptTemplate];
+          const promptToUse = (prompt && prompt.trim().length > 0) ? prompt.trim() : this.promptTemplate;
+          const content: Array<string | { inlineData: { data: string; mimeType: string } }> = [promptToUse];
           
           // Add user image
           content.push({
@@ -116,8 +107,8 @@ export class GeminiService {
           });
 
           // Debug logging
-          console.log(`[Gemini] Model: gemini-2.5-flash-image-preview | Prompt length: ${this.promptTemplate.length}`);
-          console.log(`[Gemini] Prompt: ${this.promptTemplate}`);
+          console.log(`[Gemini] Model: gemini-2.5-flash-image-preview | Prompt length: ${(prompt && prompt.trim()?.length) || this.promptTemplate.length}`);
+          console.log(`[Gemini] Prompt: ${(prompt && prompt.trim()) || this.promptTemplate}`);
           console.log(`[Gemini] Product URLs: ${processedProducts.map(p => p.url).join(', ')}`);
           console.log(`[Gemini] User image bytes: ${userImageJpeg.length} | Total product images: ${processedProducts.length} | image_count: ${imageCount}`);
 

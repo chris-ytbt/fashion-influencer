@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     const userImageFile = formData.get('user_image') as File;
     const productUrlsString = formData.get('product_urls') as string;
     const imageCountString = formData.get('image_count') as string;
+    const prompt = (formData.get('prompt') as string) || '';
 
     // Validate inputs
     if (!userImageFile || !userImageFile.type.startsWith('image/')) {
@@ -48,17 +49,10 @@ export async function POST(req: Request) {
     }
 
     // Parse product URLs
-    const productUrls = productUrlsString
+    const productUrls = (productUrlsString || '')
       .split(',')
       .map(url => url.trim())
       .filter(url => url.length > 0);
-
-    if (productUrls.length === 0) {
-      return jsonResponse({ 
-        success: false, 
-        error: 'At least one product URL is required' 
-      }, 400);
-    }
 
     // Convert user image to Buffer
     const userImageArrayBuffer = await userImageFile.arrayBuffer();
@@ -69,7 +63,8 @@ export async function POST(req: Request) {
     const result = await geminiService.generateInfluencerImages(
       userImageBuffer,
       productUrls,
-      imageCount
+      imageCount,
+      prompt
     );
 
     return jsonResponse(result);
