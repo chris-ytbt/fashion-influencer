@@ -37,11 +37,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href={profile ? "/app" : "/"} className="font-semibold">just_banana</Link>
         {onLanding ? (
-          supabaseReady ? (
-            <Link href="/login" className="px-4 py-2 bg-black text-white rounded-md">Log In</Link>
-          ) : (
-            <span className="text-xs text-gray-500" title="Supabase env vars missing; set .env.local at project root">Auth unavailable</span>
-          )
+          <Link href="/login" className="px-4 py-2 bg-black text-white rounded-md">Log In</Link>
         ) : (
           <div className="flex items-center gap-4 text-sm">
             {!profile && <Link href="/app" className="hover:underline">App</Link>}
