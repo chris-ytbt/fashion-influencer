@@ -61,12 +61,45 @@ Open http://localhost:3000 with your browser to see the result.
 ## Environment & Secrets
 
 - Backend requires GEMINI_API_KEY to be set. Do NOT commit real keys.
+- Supabase auth requires NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.
 - Example files are provided:
   - backend/.env.example
   - .env.local.example
 - Create actual env files and populate values:
   - backend/.env
   - .env.local
+
+### Supabase Setup (Google SSO + Profiles)
+1. Create a free Supabase project (https://supabase.com/):
+   - Choose region near you.
+2. In Project Settings → API, copy:
+   - Project URL → set as NEXT_PUBLIC_SUPABASE_URL
+   - Publishable key → set as NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+3. In Authentication → Providers:
+   - Google: Toggle Enabled, set Client ID/Secret (or use Quickstart), add Authorized redirect URI: http://localhost:3000/auth/callback (and your deployed domain)
+   - Email: Toggle Enabled to support email/password sign in
+4. Create the profiles table/trigger (done in your Supabase SQL editor):
+   - See issue instructions. After this, each new user will have a row in public.profiles with email, full_name, avatar_url.
+5. (Optional) Restrict access to specific emails:
+   - Create a table allowlist(email text primary key)
+   - Add a Postgres function or use RLS policies on auth.users to check email in allowlist.
+   - We can help generate exact SQL when you share the test emails.
+
+### Local Run
+- Install deps after pulling changes: npm install
+- Create .env.local at the project root (same folder as package.json) with the two Supabase vars:
+  - NEXT_PUBLIC_SUPABASE_URL=...
+  - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+- Restart dev server after editing env: Ctrl+C then `npm run dev`
+- Visit http://localhost:3000 → Landing
+- Click Log In → enter email/password or Continue with Google → on success you will be redirected to /app
+- Direct access to /app and /settings requires login (middleware-protected)
+
+### Troubleshooting
+- Error "@supabase/ssr: Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": 
+  - Ensure .env.local exists at the repository root (not under src/)
+  - Ensure variables start with NEXT_PUBLIC_ so they are exposed to the browser
+  - Restart the dev server after changes
 
 ## Deploy on Vercel
 

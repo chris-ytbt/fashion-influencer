@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Header from "@/components/Header";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -28,15 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
-          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-            <Link href="/" className="font-semibold">Fashion Influencer</Link>
-            <div className="flex items-center gap-4 text-sm">
-              <Link href="/" className="hover:underline">Home</Link>
-              <Link href="/settings" className="hover:underline">Settings</Link>
-            </div>
-          </div>
-        </nav>
+        <Header />
         {children}
       </body>
     </html>
